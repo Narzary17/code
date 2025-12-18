@@ -1,0 +1,13 @@
+<use name="DataFormats/TrackReco"/>
+<use name="DataFormats/VertexReco"/>
+<use name="DataFormats/PatCandidates"/>
+<use name="DataFormats/HeavyIonEvent"/>
+<use name="DataFormats/Common"/>
+<!--<use name="RecoHI/HiEvtPlaneAlgos"/>-->
+<use name="CommonTools/UtilAlgos"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/ServiceRegistry"/>
+
+<flags EDM_PLUGIN="1"/>

@@ -1,0 +1,31 @@
+import CRABClient
+from WMCore.Configuration import Configuration
+config = Configuration()
+
+config.section_('General')
+config.General.workArea        = 'Test_Run3_NCF_data'
+config.General.requestName     = 'Test_Run3_NCF_data'
+config.General.transferLogs    = False 
+config.General.transferOutputs = True
+################################
+config.section_('JobType')
+config.JobType.pluginName      = 'Analysis'
+config.JobType.psetName        = '../cfg/data_subash_config_cfg.py'
+config.JobType.inputFiles      = ['../cfg/CentralityTable_HFtowers200_DataPbPb_periHYDJETshape_run3v1302x04_offline_Nominal.db']
+################################
+config.section_('Data')
+config.Data.inputDataset       = '/HIPhysicsRawPrime0/HIRun2023A-PromptReco-v2/MINIAOD'
+#config.Data.inputDataset       = '/PYTHIA8_HYDJET_DiJet_5360GeV_130X/cbennett-PYTHIA8_HYDJET_DiJet_5360GeV_RECODEBUG_updatedEra_132X_2024-10-12-276727576f776097878185e411c5c644/USER'
+config.Data.splitting          = 'LumiBased'
+config.Data.unitsPerJob        = 5
+config.Data.totalUnits         = -1
+config.Data.publication        = False
+config.Data.inputDBS           = 'global'
+config.Data.outLFNDirBase      = '/store/group/phys_heavyions/subehera/'
+config.Data.outputDatasetTag   = 'Data_pbpb_NCF'
+#config.Data.lumiMask = 'Cert_Collisions2023HI_374288_375823_Golden.json'
+################################
+config.section_('Site')
+config.Site.storageSite        = 'T2_CH_CERN'
+
+

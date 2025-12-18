@@ -1,0 +1,97 @@
+import FWCore.ParameterSet.Config as cms
+
+process = cms.Process("RaghuEffTest")
+
+process.load('Configuration.Geometry.GeometryDB_cff')
+process.load('Configuration.StandardSequences.Services_cff')
+process.load('Configuration.StandardSequences.MagneticField_38T_cff')
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+process.load('FWCore.MessageService.MessageLogger_cfi')
+
+
+# __________________ General _________________
+
+# Configure the logger
+process.load("FWCore.MessageService.MessageLogger_cfi")
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
+
+process.options = cms.untracked.PSet(
+    wantSummary = cms.untracked.bool( True ),
+)
+
+# Configure the number of maximum event the analyser run on in interactive mode
+# -1 == ALL
+process.maxEvents = cms.untracked.PSet( 
+    input = cms.untracked.int32(3000) 
+)
+
+process.source = cms.Source("PoolSource",
+                            fileNames = cms.untracked.vstring(
+                                
+                                #'/store/mc/HINPbPbSpring23MiniAOD/MinBias_Drum5F_5p36TeV_hydjet/MINIAODSIM/NoPU_132X_mcRun3_2023_realistic_HI_v9-v2/2820000/02288831-b588-4380-bac8-9910f24691bd.root',
+                                #'/store/hidata/HIRun2024A/HIPhysicsRawPrime0/MINIAOD/PromptReco-v1/000/387/748/00000/c574f914-1d52-4ae8-9bcc-12affad8404b.root'
+                                '/store/hidata/HIRun2023A/HIPhysicsRawPrime0/MINIAOD/PromptReco-v2/000/374/668/00000/06179488-b7e6-44f6-bec9-eb242a290ffd.root'
+                                #'file:/afs/cern.ch/work/s/subehera/SayanDptDpt/nechstudy/CMSSW_13_2_5_patch1/src/Analyzers/ChFluctuations/cfg/f9e38f93-d48b-4efc-aaa3-033556b66514.root'
+                            ),
+                            duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
+                            skipBadFiles=cms.untracked.bool(True)
+)
+
+
+process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
+
+### centrality ###
+process.load("RecoHI.HiCentralityAlgos.CentralityBin_cfi")
+process.centralityBin.Centrality = cms.InputTag("hiCentrality")
+process.centralityBin.centralityVariable = cms.string("HFtowers")
+
+# Set the global tag
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, '132X_mcRun3_2023_realistic_HI_v5', '')
+process.GlobalTag.snapshotTime = cms.string("9999-12-31 23:59:59.000")
+process.GlobalTag.toGet.extend([
+    cms.PSet(record = cms.string("HeavyIonRcd"),
+             tag = cms.string("CentralityTable_HFtowers200_DataPbPb_periHYDJETshape_run3v1302x04_offline_Nominal"),
+             connect = cms.string("sqlite_file:CentralityTable_HFtowers200_DataPbPb_periHYDJETshape_run3v1302x04_offline_Nominal.db"),
+             label = cms.untracked.string("HFtowers")
+    ),
+])
+
+
+# __________________ Event selection _________________
+# Add PbPb collision event selection
+
+# event analysis
+process.load('HeavyIonsAnalysis.EventAnalysis.hievtanalyzer_data_cfi')
+process.load('HeavyIonsAnalysis.EventAnalysis.collisionEventSelection_cff')
+process.load('HeavyIonsAnalysis.EventAnalysis.hffilter_cfi')
+
+
+# Define the event selection sequence
+process.eventFilter = cms.Sequence(
+    process.phfCoincFilter2Th4 *
+    process.primaryVertexFilter *
+    process.clusterCompatibilityFilter
+)
+
+
+# Define the output
+process.TFileService = cms.Service("TFileService",fileName = cms.string('Test_data_only.root'))
+
+###trigger selection for data
+import HLTrigger.HLTfilters.hltHighLevel_cfi
+process.hltMB = HLTrigger.HLTfilters.hltHighLevel_cfi.hltHighLevel.clone()
+process.hltMB.HLTPaths = ["HLT_HIMinimumBiasHF1AND*"]
+
+process.hltMB.andOr = cms.bool(True)  # True = OR, False = AND between the HLT paths                                                     
+process.hltMB.throw = cms.bool(False) # throw exception on unknown path names
+
+# Load you analyzer with initial configuration
+process.load("Analyzers.ChFluctuations.ChFluctuations_cfi")
+
+process.p = cms.Path(process.hltMB *
+                     #process.eventFilter*
+                     process.centralityBin *
+                     process.defaultCPDC
+                     )
+

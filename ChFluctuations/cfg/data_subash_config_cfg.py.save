@@ -1,0 +1,70 @@
+import FWCore.ParameterSet.Config as cms
+
+process = cms.Process("RaghuEffTest")
+
+process.load('Configuration.Geometry.GeometryDB_cff')
+process.load('Configuration.StandardSequences.Services_cff')
+process.load('Configuration.StandardSequences.MagneticField_38T_cff')
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+process.load('FWCore.MessageService.MessageLogger_cfi')
+
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
+
+process.options = cms.untracked.PSet(
+    wantSummary = cms.untracked.bool(True),
+)
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+
+# ---------------- OO DATA INPUT ----------------
+process.source = cms.Source("PoolSource",
+    fileNames = cms.untracked.vstring(
+        '/store/hidata/OORun2025/IonPhysics0/MINIAOD/PromptReco-v1/000/394/075/00000/09db905b-c8ac-4e9e-9d6d-2be7f844a12b.root'
+    ),
+    duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
+    skipBadFiles=cms.untracked.bool(True)
+)
+
+process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
+process.load('HeavyIonsAnalysis.EventAnalysis.collisionEventSelection_cff')
+process.load('HeavyIonsAnalysis.EventAnalysis.hffilterPF_cfi')
+
+from HeavyIonsAnalysis.TrackAnalysis.unpackedTracksAndVertices_cfi import *
+process.unpackedTracksAndVertices = unpackedTracksAndVertices
+process.load('HeavyIonsAnalysis.VertexAnalysis.pileupvertexfilter_cfi')
+process.pileupvertexfilter.doOO = True
+process.pileupvertexfilter.doNeNe = False
+
+# Event selection sequence
+process.eventFilter = cms.Sequence(
+    process.phfCoincFilterPF2Th4 *
+    #process.primaryVertexFilter *
+    process.clusterCompatibilityFilter *
+    process.unpackedTracksAndVertices 
+    #process.pileupvertexfilter
+)
+
+# TFileService
+process.TFileService = cms.Service("TFileService", fileName = cms.string('OO_analysis.root'))
+
+# Trigger selection
+import HLTrigger.HLTfilters.hltHighLevel_cfi
+process.hltMB = HLTrigger.HLTfilters.hltHighLevel_cfi.hltHighLevel.clone()
+process.hltMB.HLTPaths = ["HLT_MinimumBiasHF_OR_BptxAND_v1"]
+process.hltMB.andOr = cms.bool(True)
+process.hltMB.throw = cms.bool(False)
+
+# Load analyzer
+process.load("Analyzers.ChFluctuations.ChFluctuations_cfi")
+
+# Keep your analyzer flags as-is
+process.defaultCPDC.collisionSystem = cms.untracked.string("OO")
+process.defaultCPDC.IsMC = cms.untracked.bool(False)
+
+# ----------------- Path -----------------
+# centralityBin removed to avoid ProductNotFound
+process.p = cms.Path(
+    process.hltMB *
+    process.eventFilter *
+    process.defaultCPDC
+)
+
