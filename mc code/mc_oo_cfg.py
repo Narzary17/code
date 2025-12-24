@@ -17,9 +17,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # mc dataset
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(
-        # Using Global Redirector to ensure access
-        'root://cms-xrd-global.cern.ch//store/mc/HINOOSpring25MiniAOD/MinBias-Angantyr_5p36TeV_pythia8/MINIAODSIM/NoPU_CustomTrack_NoPU_CustomTrack_150X_mcRun3_2025_forOO_realistic_v8-v3/2520000/01e4c607-8a4a-4a4c-8c25-7577364df774.root'
+    fileNames = cms.untracked.vstring( 'root://cms-xrd-global.cern.ch//store/mc/HINOOSpring25MiniAOD/MinBias-Angantyr_5p36TeV_pythia8/MINIAODSIM/NoPU_CustomTrack_NoPU_CustomTrack_150X_mcRun3_2025_forOO_realistic_v8-v3/2520000/01e4c607-8a4a-4a4c-8c25-7577364df774.root'
     ),
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
     skipBadFiles=cms.untracked.bool(True)
