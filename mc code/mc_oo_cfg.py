@@ -1,8 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("OOFlowAnalysisMC")
-
-# 1. General Services
+
 process.load('Configuration.Geometry.GeometryDB_cff')
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
@@ -16,7 +15,7 @@ process.options = cms.untracked.PSet(
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
-# 2. Input Source (Updated with new Angantyr Pythia8 file)
+# mc dataset
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         # Using Global Redirector to ensure access
@@ -26,18 +25,16 @@ process.source = cms.Source("PoolSource",
     skipBadFiles=cms.untracked.bool(True)
 )
 
-# 3. Global Tag (Updated to v8)
+# Global Tag 
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '150X_mcRun3_2025_forOO_realistic_v8', '')
 
-# 4. Trigger (Defined but NOT used in Path for NoPU MC)
+# Trigger
 import HLTrigger.HLTfilters.hltHighLevel_cfi
 process.hltMB = HLTrigger.HLTfilters.hltHighLevel_cfi.hltHighLevel.clone()
 process.hltMB.HLTPaths = ["HLT_MinimumBiasHF_OR_BptxAND_v1"] 
 process.hltMB.andOr = cms.bool(True)
-process.hltMB.throw = cms.bool(False)
-
-# 5. Event Filters
+process.hltMB.throw = cms.bool(False)
 process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.collisionEventSelection_cff')
 process.load('HeavyIonsAnalysis.EventAnalysis.hffilterPF_cfi')
@@ -57,19 +54,16 @@ process.eventFilter_HM = cms.Sequence(
 )
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('OO_MC_Output_Angantyr.root'))
-
-# 6. Analyzer
+
 process.load('Analyzers.Cumulants.ChFluctuations_cfi')
-
-# Clone and Configure
+
 process.defaultCPDC = process.chFluctuations.clone(
-    IsMC = cms.untracked.bool(False),  # Enable Gen Loop for MC
-    noffmin = cms.untracked.int32(10)  # Filter low multiplicity events (matches your Data selection)
+    IsMC = cms.untracked.bool(False),  
+    noffmin = cms.untracked.int32(10)  
 )
-
-# 7. Final Path
+
 process.p = cms.Path(
-    # process.hltMB *           # Trigger DISABLED for NoPU MC (prevents 0 events passed)
+    # process.hltMB *           
     process.eventFilter_HM *    
     process.defaultCPDC         
 )
